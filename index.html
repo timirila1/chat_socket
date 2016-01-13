@@ -1,0 +1,39 @@
+<!DOCTYPE html><html></html><head><title>Chat</title><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"><script src="/socket.io/socket.io.js"></script><script src="http://code.jquery.com/jquery-1.11.1.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script><style>.chat{display:none;}
+ul{list-style: none; padding: 0;}
+</style></head><body><div class="container"><h1>LiveChat 1.0</h1><div class="login-form"><h2>Enter login</h2><form id="login-form"><div class="form-group"><input id="login" class="form-control"></div><div class="form-group"><button class="btn btn-primary">Enter chat</button></div></form></div><div class="chat"><div class="row"><div class="col-xs-9"><div class="panel panel-default"><div class="panel-heading">LiveChat</div><div class="panel-body"><ul id="common-chat"></ul></div></div><h3>New message</h3><form id="chat-form"><div class="form-group"><input id="message" class="form-control"></div><div class="form-group"><button class="btn btn-success">Send</button></div></form></div><div class="col-xs-3"><div class="panel panel-default"><div class="panel-heading">Users list</div><div class="panel-body"><ul id="users"></ul></div></div></div></div></div></div><script type="text/javascript">var socket = io();
+
+var commonChat = $("#common-chat");
+var users = $("#users");
+
+$('form#login-form').submit(function(){
+    socket.emit('new user login', $('#login').val());
+    $('.login-form').fadeOut(300);
+    setTimeout(function(){
+        $('.chat').fadeIn(300);
+    }, 300);
+    $('#login').val('');
+    return false
+});
+
+$('form#chat-form').submit(function () {
+    socket.emit('from user message', $('#message').val());
+    $('#message').val('');
+    return false
+});
+
+socket.on("welcome", function(user) {
+    commonChat.append($('<li class="text-success">').text("Your new name - " + user.name));
+});
+
+socket.on("new user", function(user) {
+    commonChat.append($('<li class="text-success">').text("New user - " + user.name));
+    users.append($('<li>').html("<a href=" + socket.id + ">" + user.name + "</a>"));
+});
+
+socket.on("some user disconnect", function (user) {
+    commonChat.append($('<li class="text-danger">').text(user.name + " - user disconnect"));
+});
+
+socket.on("from server message", function (message) {
+    commonChat.append($('<li>').html(message.msgtxt + " - <span class='text-muted'>" + message.name + "<span class='text-muted'>"));
+});</script></body>

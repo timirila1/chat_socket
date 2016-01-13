@@ -1,0 +1,82 @@
+doctype
+html
+head
+    title Chat
+    link(rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css")
+    script(src="/socket.io/socket.io.js")
+    script(src="http://code.jquery.com/jquery-1.11.1.js")
+    script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js")
+
+    style.
+        .chat{display:none;}
+        ul{list-style: none; padding: 0;}
+
+body
+    div.container
+        h1 LiveChat 1.0
+        div.login-form
+            h2 Enter login
+            form#login-form
+                div.form-group
+                    input#login.form-control
+                div.form-group
+                    button.btn.btn-primary Enter chat
+        div.chat
+            div.row
+                div.col-xs-9
+                    div.panel.panel-default
+                        div.panel-heading LiveChat
+                        div.panel-body
+                            ul#common-chat
+
+                    h3 New message
+
+                    form#chat-form
+                        div.form-group
+                            input#message.form-control
+                        div.form-group
+                            button.btn.btn-success Send
+                div.col-xs-3
+                    div.panel.panel-default
+                        div.panel-heading Users list
+                        div.panel-body
+                            ul#users
+
+    script(type='text/javascript').
+        var socket = io();
+
+        var commonChat = $("#common-chat");
+        var users = $("#users");
+
+        $('form#login-form').submit(function(){
+            socket.emit('new user login', $('#login').val());
+            $('.login-form').fadeOut(300);
+            setTimeout(function(){
+                $('.chat').fadeIn(300);
+            }, 300);
+            $('#login').val('');
+            return false
+        });
+
+        $('form#chat-form').submit(function () {
+            socket.emit('from user message', $('#message').val());
+            $('#message').val('');
+            return false
+        });
+
+        socket.on("welcome", function(user) {
+            commonChat.append($('<li class="text-success">').text("Your new name - " + user.name));
+        });
+
+        socket.on("new user", function(user) {
+            commonChat.append($('<li class="text-success">').text("New user - " + user.name));
+            users.append($('<li>').html("<a href=" + socket.id + ">" + user.name + "</a>"));
+        });
+
+        socket.on("some user disconnect", function (user) {
+            commonChat.append($('<li class="text-danger">').text(user.name + " - user disconnect"));
+        });
+
+        socket.on("from server message", function (message) {
+            commonChat.append($('<li>').html(message.msgtxt + " - <span class='text-muted'>" + message.name + "<span class='text-muted'>"));
+        });
