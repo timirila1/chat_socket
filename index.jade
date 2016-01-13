@@ -9,7 +9,7 @@ head
 
     style.
         .chat{display:none;}
-        ul{list-style: none; padding: 0;}
+        ul{list-style: none; padding: 0; margin: 0;}
 
 body
     div.container
@@ -33,7 +33,7 @@ body
 
                     form#chat-form
                         div.form-group
-                            input#message.form-control
+                            input(autofocus)#message.form-control
                         div.form-group
                             button.btn.btn-success Send
                 div.col-xs-3
@@ -60,23 +60,29 @@ body
 
         $('form#chat-form').submit(function () {
             socket.emit('from user message', $('#message').val());
-            $('#message').val('');
+            $('#message').val('').focus();
             return false
         });
 
+        $('.user-link').click(function() {
+            var userId = $(this).attr('href');
+            var userName = $(this).text();
+            $('.chat h3').append("for " + userName);
+        });
+
         socket.on("welcome", function(user) {
-            commonChat.append($('<li class="text-success">').text("Your new name - " + user.name));
+            commonChat.append($('<li class="text-success">').text("Your new name - " + user.login));
         });
 
         socket.on("new user", function(user) {
-            commonChat.append($('<li class="text-success">').text("New user - " + user.name));
-            users.append($('<li>').html("<a href=" + socket.id + ">" + user.name + "</a>"));
+            commonChat.append($('<li class="text-success">').text("New user - " + user.login));
+            users.append($('<li>').html("<a class='user-link' href=" + socket.id + ">" + user.login + "</a>"));
         });
 
         socket.on("some user disconnect", function (user) {
-            commonChat.append($('<li class="text-danger">').text(user.name + " - user disconnect"));
+            commonChat.append($('<li class="text-danger">').text(user.login + " - user disconnect"));
         });
 
         socket.on("from server message", function (message) {
-            commonChat.append($('<li>').html(message.msgtxt + " - <span class='text-muted'>" + message.name + "<span class='text-muted'>"));
+            commonChat.append($('<li>').html(message.msgtxt + " - <span class='text-muted'>" + message.login + "<span class='text-muted'>"));
         });
